@@ -36,6 +36,24 @@ yarn-error.log*
 # vercel
 .vercel
 
+# database (SQLite driver adapter resolves relative to cwd, i.e. project root, not prisma/)
+/dev.db
+/dev.db-journal
+/prisma/*.db
+/prisma/*.db-journal
+
+# generated prisma client
+/src/generated/prisma
+
+# user-uploaded media (beats, cover art)
+/public/uploads
+
+# private/gated deliverables (only served through the download API)
+/private-uploads/*
+!/private-uploads/licenses/
+/private-uploads/licenses/*
+!/private-uploads/licenses/placeholder-deliverable.txt
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

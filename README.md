@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Permanent Sounds Records
 
-## Getting Started
+Beat store (buy/lease), studio session booking, and an admin dashboard, built with Next.js 16, Prisma/SQLite, Auth.js, and Lenco for payments.
 
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env   # fill in real values before going live
+npx prisma migrate dev
+npm run db:seed        # creates an admin user + sample beats/services
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. The seed script prints an admin login (email is `ADMIN_EMAIL` from `.env`, password `changeme123` — change it after first login).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app` — pages and API routes (App Router)
+- `src/app/admin` — protected admin dashboard (beats, services, availability, bookings, orders)
+- `src/lib` — Prisma client, auth config, payments, email, validation
+- `src/store/cart-store.ts` — client-side cart (Zustand, persisted to localStorage)
+- `prisma/schema.prisma` — data model; `prisma/seed.ts` — demo data
+- `public/uploads` — publicly-servable beat cover art & previews (admin uploads)
+- `private-uploads` — gated license deliverables, only ever served through `/api/downloads/[token]` after a paid order
 
-## Learn More
+## Payments (Lenco)
 
-To learn more about Next.js, take a look at the following resources:
+`src/lib/payments/lenco.ts` wraps checkout initiation, transaction verification, and webhook signature checking.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Before going live**, confirm the checkout-initiation request/response shape against the integration snippet in your Lenco dashboard (LencoPay / Collections → API keys) — that specific endpoint wasn't in Lenco's public API reference at the time this was built, so it's implemented against the common shape for this class of gateway and needs a final check. The webhook signature verification (`X-Lenco-Signature`, HMAC-SHA512) **is** confirmed against Lenco's docs.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Set `LENCO_PUBLIC_KEY`, `LENCO_SECRET_KEY`, and `LENCO_WEBHOOK_SECRET` in `.env`, and point Lenco's webhook at `/api/webhooks/lenco`.
 
-## Deploy on Vercel
+## Email
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Order and booking confirmations send through SMTP (`src/lib/email.ts`, via Nodemailer). Without `SMTP_HOST` set, emails are skipped with a console warning instead of failing — fine for local dev, but required before launch.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Database
+
+SQLite for local dev (`prisma/dev.db`, gitignored) — zero setup. Prisma ORM v7 uses a driver-adapter model (`prisma.config.ts` + `@prisma/adapter-better-sqlite3`), not the older `datasource url` pattern. For production, switch `prisma/schema.prisma`'s datasource provider to `postgresql`, swap the adapter in `src/lib/prisma.ts` (e.g. `@prisma/adapter-pg` with a hosted Postgres like Neon or Supabase), and re-run migrations.
+
+## Branding
+
+Colors and fonts live in `src/app/globals.css` (Tailwind v4 `@theme` tokens — no `tailwind.config.js`). Brand red is `#e31e24`, matched to the logo.

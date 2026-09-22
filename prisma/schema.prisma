@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+
+  orders   Order[]
+  bookings Booking[]
+}
+
+model Beat {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  title            String
+  producerName     String   @default("Permanent Sounds Records")
+  bpm              Int
+  key              String
+  genre            String
+  tags             String   @default("")
+  coverArtUrl      String
+  previewAudioUrl  String
+  plays            Int      @default(0)
+  featured         Boolean  @default(false)
+  published        Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  licenseOptions LicenseOption[]
+  orderItems     OrderItem[]
+}
+
+model LicenseOption {
+  id                String  @id @default(cuid())
+  beatId            String
+  beat              Beat    @relation(fields: [beatId], references: [id], onDelete: Cascade)
+  name              String
+  priceCents        Int
+  fileFormat        String
+  deliverables      String
+  usageTerms        String
+  distributionLimit Int?
+  isExclusive       Boolean @default(false)
+  sortOrder         Int     @default(0)
+  filePath          String  @default("")
+
+  orderItems OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  userId         String?
+  user           User?       @relation(fields: [userId], references: [id])
+  email          String
+  status         OrderStatus @default(PENDING)
+  totalCents     Int
+  lencoReference String      @unique
+  createdAt      DateTime    @default(now())
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id              String        @id @default(cuid())
+  orderId         String
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  beatId          String
+  beat            Beat          @relation(fields: [beatId], references: [id])
+  licenseOptionId String
+  licenseOption   LicenseOption @relation(fields: [licenseOptionId], references: [id])
+  priceCents      Int
+  downloadToken   String        @unique @default(cuid())
+  downloadExpires DateTime
+}
+
+model Service {
+  id              String  @id @default(cuid())
+  name            String
+  description     String
+  durationMinutes Int
+  priceCents      Int
+  depositCents    Int
+  active          Boolean @default(true)
+
+  bookings Booking[]
+}
+
+model Availability {
+  id        String @id @default(cuid())
+  dayOfWeek Int
+  startTime String
+  endTime   String
+}
+
+model BlackoutDate {
+  id     String   @id @default(cuid())
+  date   DateTime
+  reason String?
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id])
+  name           String
+  email          String
+  phone          String
+  serviceId      String
+  service        Service       @relation(fields: [serviceId], references: [id])
+  date           DateTime
+  startTime      String
+  endTime        String
+  status         BookingStatus @default(PENDING)
+  lencoReference String?       @unique
+  amountPaidCents Int          @default(0)
+  notes          String?
+  createdAt      DateTime      @default(now())
+}
