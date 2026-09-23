@@ -61,7 +61,15 @@ export function Footer() {
           © {new Date().getFullYear()} Permanent Sounds Records. All rights
           reserved.
         </p>
-        <p className="mt-1">Powered and designed by Nadine Cloud</p>
+        <p className="mt-1">
+          Designed and hosted by{" "}
+          <a
+            href="https://www.nadinecloud.com"
+            className="hover:text-foreground"
+          >
+            Nadine Cloud
+          </a>
+        </p>
       </div>
     </footer>
   );

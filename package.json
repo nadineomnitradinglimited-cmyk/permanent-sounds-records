@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && prisma migrate deploy && next build",
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
@@ -19,7 +19,7 @@
     "dotenv": "^18.0.3",
     "next": "16.3.5",
     "next-auth": "^5.0.0-beta.32",
-    "nodemailer": "^10.0.10",
+    "nodemailer": "^8.0.5",
     "prisma": "7.10.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -31,6 +31,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.19",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
