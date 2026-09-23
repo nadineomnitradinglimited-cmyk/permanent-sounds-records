@@ -6,6 +6,7 @@ import type { NextConfig } from "next";
 process.env.RAYON_NUM_THREADS ??= "1";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   serverExternalPackages: ["better-sqlite3", "@prisma/adapter-better-sqlite3"],
   experimental: {
     cpus: 1,
